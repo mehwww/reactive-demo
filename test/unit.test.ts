@@ -44,18 +44,24 @@ describe("meh's Reactive API demo", () => {
     const a = value(1);
     const b = value({ count: 2 });
     const c = value(666);
-    const fn = jest.fn(() => {
+    const compute = jest.fn(() => {
       return a.value + b.count;
     });
-    watch(fn);
-    expect(fn.mock.calls.length).toBe(1);
-    expect(fn.mock.results[0].value).toBe(3);
+    const callback = jest.fn();
+    watch(compute, callback);
+    expect(compute.mock.calls.length).toBe(1);
+    expect(callback.mock.calls.length).toBe(0);
+    expect(compute.mock.results[0].value).toBe(3);
     a.value += 3;
-    expect(fn.mock.calls.length).toBe(2);
-    expect(fn.mock.results[1].value).toBe(6);
+    expect(compute.mock.calls.length).toBe(2);
+    expect(callback.mock.calls.length).toBe(1);
+    expect(compute.mock.results[1].value).toBe(6);
+    expect(callback.mock.calls[0][0]).toBe(6);
+    expect(callback.mock.calls[0][1]).toBe(3);
     c.value *= 2;
-    expect(fn.mock.calls.length).toBe(2);
-    expect(fn.mock.results[2]).toBe(undefined);
+    expect(compute.mock.calls.length).toBe(2);
+    expect(compute.mock.results[2]).toBe(undefined);
+    expect(callback.mock.calls.length).toBe(1);
   });
 
   it('computed API works', () => {
