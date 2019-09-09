@@ -61,6 +61,7 @@ const makeObjectValue = <T = any>(val: T): T => {
       target[DEP].notify();
       return true;
     },
+
   }) as any;
 };
 

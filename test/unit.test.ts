@@ -48,7 +48,7 @@ describe("meh's Reactive API demo", () => {
       return a.value + b.count;
     });
     const callback = jest.fn();
-    watch(compute, callback);
+    const unwatch = watch(compute, callback);
     expect(compute.mock.calls.length).toBe(1);
     expect(callback.mock.calls.length).toBe(0);
     expect(compute.mock.results[0].value).toBe(3);
@@ -59,6 +59,11 @@ describe("meh's Reactive API demo", () => {
     expect(callback.mock.calls[0][0]).toBe(6);
     expect(callback.mock.calls[0][1]).toBe(3);
     c.value *= 2;
+    expect(compute.mock.calls.length).toBe(2);
+    expect(compute.mock.results[2]).toBe(undefined);
+    expect(callback.mock.calls.length).toBe(1);
+    unwatch();
+    a.value += 3;
     expect(compute.mock.calls.length).toBe(2);
     expect(compute.mock.results[2]).toBe(undefined);
     expect(callback.mock.calls.length).toBe(1);
@@ -75,5 +80,27 @@ describe("meh's Reactive API demo", () => {
     expect(a.value).toBe(2);
     expect(b.value).toBe(4);
     expect(c.value).toBe(8);
+  });
+
+  it('computed value should collect dependency if value is not read at first', () => {
+    const a = value(0);
+    const b = value(-10);
+    const c = computed(() => {
+      if (a.value) {
+        return b.value;
+      }
+      return a.value;
+    });
+    expect(a.value).toBe(0);
+    expect(b.value).toBe(-10);
+    expect(c.value).toBe(0);
+    a.value += 1;
+    expect(a.value).toBe(1);
+    expect(b.value).toBe(-10);
+    expect(c.value).toBe(-10);
+    b.value += 1;
+    expect(a.value).toBe(1);
+    expect(b.value).toBe(-9);
+    expect(c.value).toBe(-9);
   });
 });

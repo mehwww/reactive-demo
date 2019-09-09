@@ -12,7 +12,7 @@ const watch = (
     value = nextValue;
   });
   let value = func();
-  unsetTarget();
+  return unsetTarget();
 };
 
 export default watch;

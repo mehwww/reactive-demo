@@ -1,11 +1,8 @@
-let target: null | Function = null;
+let target: null | ISubscriber = null;
 
-const setTarget = (func: Function) => {
-  target = func;
-};
-
-const unsetTarget = () => {
-  target = null;
+type ISubscriber = {
+  (): void;
+  __isAbandoned?: boolean;
 };
 
 type IDepend = {
@@ -13,23 +10,39 @@ type IDepend = {
   notify: () => void;
 };
 
+const setTarget = (func: ISubscriber) => {
+  target = func;
+};
+
+const unsetTarget = () => {
+  const _target = target;
+  target = null;
+  return () => {
+    _target && (_target.__isAbandoned = true);
+  };
+};
+
 const depend = () => {
-  const subscribers: Function[] = [];
-  const subscribe = (func: Function) => {
+  let subscribers: ISubscriber[] = [];
+  const subscribe = (func: ISubscriber) => {
     subscribers.push(func);
   };
   const notify = () => {
-    subscribers.forEach(f => f());
+    subscribers = subscribers.filter(f => {
+      if (f.__isAbandoned) return false;
+      f();
+      return true;
+    });
   };
   return { subscribe, notify };
 };
 
 Object.defineProperty(depend, 'target', {
-  get: (): null | Function => target,
+  get: (): null | ISubscriber => target,
 });
 
 export { setTarget, unsetTarget, IDepend };
 export default depend as {
   (): IDepend;
-  target: null | Function;
+  target: null | ISubscriber;
 };
